@@ -15,33 +15,11 @@ def save_file(filepath, content):
 
 openai.api_key = open_file('openaiapikey.txt')
 
-places = [
-    'America',
-    'Japan',
-    'Norway',
-    'UK'
-]
+import pandas as pd
+articles = pd.read_excel('articles.xlsx')
 
-years = [
-    '2025',
-    '2028',
-    '2030',
-    '2023'
-]
+titles = articles['Title'].tolist()[5:50]
 
-para1s = [
-    'people',
-    'world',
-    'society',
-    'environment'
-]
-
-para2s = [
-    'jobs',
-    'transportation',
-    'food',
-    'technology'
-]
 
 
 def gpt3_completion(prompt, engine='text-babbage-001', temp=1.0, top_p=1.0, tokens=128, freq_pen=0.0,
@@ -72,30 +50,20 @@ def gpt3_completion(prompt, engine='text-babbage-001', temp=1.0, top_p=1.0, toke
             print('Error communicating with OpenAI:', oops)
             sleep(1)
 
-
+import json
 if __name__ == '__main__':
     count = 0
-    for place in places:
-        for year in years:
-            for para1 in para1s:
-                for para2 in para2s:
-                    count += 1
-                    prompt = open_file('prompt.txt')
-                    prompt = prompt.replace('<<PLACE>>', place)
-                    prompt = prompt.replace('<<YEAR>>', year)
-                    prompt = prompt.replace('<<PARA1>>', para1)
-                    prompt = prompt.replace('<<PARA2>>', para2)
-                    prompt = prompt.replace('<<UUID>>', str(uuid4()))
-                    print('\n\n', prompt)
-                    completion = gpt3_completion(prompt)
-                    outprompt = 'Year: %s\nPlace: %s\nParameter1: %s\nParameter2: %s\n\nScenario: ' % (year,
-                                                                                                       place, para1,
-                                                                                                       para2)
-                    filename = (place + year + para1 + para2).replace(' ', '').replace('&', "") + '%s.txt' % time()
-                    save_file('prompts/%s' % filename, outprompt)
-                    save_file('completions/%s' % filename, completion)
-                    print('\n\n', outprompt)
-                    print('\n\n', completion)
-                    if count > 3:
-                        exit()
+    jsonResponses = {}
+    with open("responses.json", "r") as jsonFile:
+        jsonResponses = dict(json.load(jsonFile))
+    for title in titles:
+        count += 1
+        prompt = open_file('prompt.txt')
+        prompt = prompt.replace('<<TITLE>>', title)
+        completion = gpt3_completion(prompt)
+        jsonResponses[title] = [completion]
+        print('\n\n', prompt)
+        print(completion)
+    with open("responses.json", "w") as jsonFile:
+        json.dump(jsonResponses, jsonFile)
     # print(count)
