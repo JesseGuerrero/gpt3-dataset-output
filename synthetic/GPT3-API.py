@@ -18,7 +18,7 @@ openai.api_key = open_file('openaiapikey.txt')
 import pandas as pd
 articles = pd.read_excel('articles.xlsx')
 
-titles = articles['Title'].tolist()[5:50]
+titles = articles['Title'].tolist()[:50]
 
 
 
@@ -54,7 +54,7 @@ import json
 if __name__ == '__main__':
     count = 0
     jsonResponses = {}
-    with open("responses.json", "r") as jsonFile:
+    with open("responsesSample.json", "r") as jsonFile:
         jsonResponses = dict(json.load(jsonFile))
     for title in titles:
         count += 1
@@ -62,8 +62,11 @@ if __name__ == '__main__':
         prompt = prompt.replace('<<TITLE>>', title)
         completion = gpt3_completion(prompt)
         jsonResponses[title] = [completion]
-        print('\n\n', prompt)
+        print('\n' + str(count) + " " + prompt)
         print(completion)
-    with open("responses.json", "w") as jsonFile:
+        if count % 5_000 == 0:
+            with open("responsesSample.json", "w") as jsonFile:
+                json.dump(jsonResponses, jsonFile)
+    with open("responsesSample.json", "w") as jsonFile:
         json.dump(jsonResponses, jsonFile)
     # print(count)
